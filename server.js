@@ -8,7 +8,7 @@ const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:3000', 'https://alihaider981.github.io', 'https://alihaider981.github.io/QuraanAcadmey'],
+  origin: ['http://localhost:3000', 'https://alihaider981.github.io', 'https://alihaider981.github.io/QuraanAcadmey', 'https://quraanacadmey-production.up.railway.app'],
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
