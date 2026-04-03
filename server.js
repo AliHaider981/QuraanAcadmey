@@ -1,6 +1,7 @@
 const express = require('express');
 const nodemailer = require('nodemailer');
 const cors = require('cors');
+require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -13,8 +14,8 @@ app.use(express.json());
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        user: 'YOUR_EMAIL@gmail.com', // Admin email
-        pass: 'YOUR_EMAIL_PASSWORD'    // Admin email password
+        user: process.env.GMAIL_USER, // Admin email
+        pass: process.env.GMAIL_PASS    // Admin email password
     }
 });
 
@@ -24,7 +25,7 @@ app.post('/send-email', (req, res) => {
 
     // Email options for user confirmation
     const userMailOptions = {
-        from: 'YOUR_EMAIL@gmail.com', // Admin email
+        from: process.env.GMAIL_USER, // Admin email
         to: userEmail,
         subject: subject,
         text: message,
@@ -32,8 +33,8 @@ app.post('/send-email', (req, res) => {
 
     // Email options for admin notification
     const adminMailOptions = {
-        from: 'YOUR_EMAIL@gmail.com', // Admin email
-        to: 'ADMIN_EMAIL@gmail.com',  // Admin email for notifications
+        from: process.env.GMAIL_USER, // Admin email
+        to: process.env.ADMIN_EMAIL || process.env.GMAIL_USER,  // Admin email for notifications
         subject: `New email from: ${userEmail}`,
         text: `User Email: ${userEmail}\nMessage: ${message}`,
     };
