@@ -1706,9 +1706,9 @@
     // For local development run your Node server (server.js) and keep this as localhost.
     const host = window.location.hostname;
     if (host.includes('github.io')) {
-      return 'https://YOUR_DEPLOYED_BACKEND_URL';
+      return 'https://quraanacadmey-production.up.railway.app';
     }
-    return 'http://localhost:3000';
+    return 'http://quraanacadmey.railway.internal:3000';
   })();
 
   async function handleSubmit(btn) {
@@ -1744,7 +1744,7 @@
     };
 
     try {
-      const backendBase = "https://quraanacadmey-production.up.railway.app";
+      const backendBase = BACKEND_BASE;
       const resp = await fetch(`${backendBase}/send-email`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
