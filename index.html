@@ -1706,9 +1706,9 @@
     // For local development run your Node server (server.js) and keep this as localhost.
     const host = window.location.hostname;
     if (host.includes('github.io')) {
-      return 'https://quraanacadmey-production.up.railway.app';
+      return 'https://quraanacadmey-production-3b5f.up.railway.app';
     }
-    return 'http://quraanacadmey.railway.internal:3000';
+    return 'http://localhost:3000';
   })();
 
   async function handleSubmit(btn) {
