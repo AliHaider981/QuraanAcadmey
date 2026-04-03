@@ -1571,46 +1571,47 @@
         <div class="form-row">
           <div class="form-group">
             <label>FIRST NAME</label>
-            <input type="text" placeholder="Ahmad">
+            <input id="first-name" type="text" placeholder="Ahmad">
           </div>
           <div class="form-group">
             <label>LAST NAME</label>
-            <input type="text" placeholder="Ali">
+            <input id="last-name" type="text" placeholder="Ali">
           </div>
         </div>
 
         <div class="form-group">
           <label>EMAIL ADDRESS</label>
-          <input type="email" placeholder="ahmad@email.com">
+          <input id="email" type="email" placeholder="ahmad@email.com">
         </div>
 
         <div class="form-group">
           <label>WHATSAPP / PHONE</label>
-          <input type="text" placeholder="+1 555 000 0000">
+          <input id="phone" type="text" placeholder="+1 555 000 0000">
         </div>
 
         <div class="form-group">
           <label>I'M INTERESTED IN</label>
-          <select>
-            <option>Select a course...</option>
-            <option>Noorani Qaida (Beginner)</option>
-            <option>Quran Reading</option>
-            <option>Tajweed Rules</option>
-            <option>Hifz Programme</option>
-            <option>Quran for Children</option>
-            <option>Islamic Studies & Tafseer</option>
-            <option>Family Plan</option>
+          <select id="course">
+            <option value="">Select a course...</option>
+            <option value="Noorani Qaida (Beginner)">Noorani Qaida (Beginner)</option>
+            <option value="Quran Reading">Quran Reading</option>
+            <option value="Tajweed Rules">Tajweed Rules</option>
+            <option value="Hifz Programme">Hifz Programme</option>
+            <option value="Quran for Children">Quran for Children</option>
+            <option value="Islamic Studies & Tafseer">Islamic Studies & Tafseer</option>
+            <option value="Family Plan">Family Plan</option>
           </select>
         </div>
 
         <div class="form-group">
           <label>MESSAGE</label>
-          <textarea placeholder="Tell us about yourself, your level, your goals, and any questions you have..."></textarea>
+          <textarea id="message" placeholder="Tell us about yourself, your level, your goals, and any questions you have..."></textarea>
         </div>
 
-        <button class="btn btn-gold" style="width:100%;font-size:18px;padding:16px;" onclick="handleSubmit(this)">Send Message &amp; Book Free Trial</button>
+        <button id="send-button" class="btn btn-gold" style="width:100%;font-size:18px;padding:16px;" onclick="handleSubmit(this)" type="button">Send Message &amp; Book Free Trial</button>
 
-        <p style="font-size:14px;color:var(--text-muted);text-align:center;margin-top:16px;">We respond within 24 hours. Your first class is always free.</p>
+        <div id="form-status" style="font-size:14px;color:var(--text-muted);text-align:center;margin-top:16px;min-height:22px;"></div>
+        <p style="font-size:14px;color:var(--text-muted);text-align:center;margin-top:6px;">We respond within 24 hours. Your first class is always free.</p>
       </div>
 
     </div>
@@ -1700,11 +1701,70 @@
     });
   });
 
-  function handleSubmit(btn) {
-    btn.textContent = 'Message Sent! We\'ll contact you within 24 hours ✓';
-    btn.style.background = 'var(--green-mid)';
-    btn.style.color = '#fff';
+  async function handleSubmit(btn) {
+    const firstName = document.getElementById('first-name').value.trim();
+    const lastName = document.getElementById('last-name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const course = document.getElementById('course').value.trim();
+    const message = document.getElementById('message').value.trim();
+    const statusEl = document.getElementById('form-status');
+
+    if (!firstName || !lastName || !email || !message) {
+      statusEl.textContent = 'Please fill in at least first name, last name, email, and message.';
+      statusEl.style.color = '#d42b40';
+      return;
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      statusEl.textContent = 'Please enter a valid email address.';
+      statusEl.style.color = '#d42b40';
+      return;
+    }
+
     btn.disabled = true;
+    btn.textContent = 'Sending...';
+    statusEl.textContent = 'Sending your message, please wait...';
+    statusEl.style.color = 'var(--text-muted)';
+
+    const payload = {
+      userEmail: email,
+      subject: `New enrolment request from ${firstName} ${lastName}`,
+      message: `Name: ${firstName} ${lastName}\nEmail: ${email}\nPhone: ${phone || 'N/A'}\nCourse: ${course || 'Not selected'}\n\nMessage:\n${message}`
+    };
+
+    try {
+      const resp = await fetch('/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!resp.ok) {
+        throw new Error('Failed to send email.');
+      }
+
+      btn.textContent = 'Message Sent! We\'ll contact you within 24 hours ✓';
+      btn.style.background = 'var(--green-mid)';
+      btn.style.color = '#fff';
+      statusEl.textContent = 'Thank you! We received your message and will reply shortly.';
+      statusEl.style.color = 'var(--green-mid)';
+
+      document.getElementById('first-name').value = '';
+      document.getElementById('last-name').value = '';
+      document.getElementById('email').value = '';
+      document.getElementById('phone').value = '';
+      document.getElementById('course').value = '';
+      document.getElementById('message').value = '';
+    } catch (error) {
+      statusEl.textContent = 'Oops! Something went wrong. Please try again later.';
+      statusEl.style.color = '#d42b40';
+      btn.textContent = 'Send Message & Book Free Trial';
+      btn.disabled = false;
+      btn.style.background = 'var(--gold)';
+      btn.style.color = 'var(--green-dark)';
+      console.error(error);
+    }
   }
 </script>
 </body>
