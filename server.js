@@ -19,8 +19,8 @@ app.use(express.json());
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        user: process.env.GMAIL_USER, // Admin email
-        pass: process.env.GMAIL_PASS    // Admin email password
+        user: process.env.EMAIL_USER, // Admin email
+        pass: process.env.EMAIL_PASSWORD    // Admin email password
     }
 });
 
@@ -31,7 +31,7 @@ app.post('/send-email', (req, res) => {
 
     // Email options for user confirmation
     const userMailOptions = {
-        from: process.env.GMAIL_USER, // Admin email
+        from: process.env.EMAIL_USER, // Admin email
         to: userEmail,
         subject: subject,
         text: message,
@@ -39,8 +39,8 @@ app.post('/send-email', (req, res) => {
 
     // Email options for admin notification
     const adminMailOptions = {
-        from: process.env.GMAIL_USER, // Admin email
-        to: process.env.ADMIN_EMAIL || process.env.GMAIL_USER,  // Admin email for notifications
+        from: process.env.EMAIL_USER, // Admin email
+        to: process.env.ADMIN_EMAIL || process.env.EMAIL_USER,  // Admin email for notifications
         subject: `New email from: ${userEmail}`,
         text: `User Email: ${userEmail}\nMessage: ${message}`,
     };
