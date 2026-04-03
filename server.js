@@ -23,20 +23,22 @@ app.get('/', (req, res) => {
 // Configure nodemailer transporter
 if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
     console.error('Missing EMAIL_USER or EMAIL_PASSWORD environment variables');
-    process.exit(1);
+    console.error('EMAIL_USER:', process.env.EMAIL_USER);
+    console.error('EMAIL_PASSWORD:', process.env.EMAIL_PASSWORD ? '***' : 'NOT SET');
 }
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        user: process.env.EMAIL_USER, // Admin email
-        pass: process.env.EMAIL_PASSWORD    // Admin email password
+        user: process.env.EMAIL_USER || 'noemail@gmail.com',
+        pass: process.env.EMAIL_PASSWORD || 'nopass'
     }
 });
 
 // Send email endpoint
 app.post('/send-email', (req, res) => {
-    debugger;
     const { userEmail, subject, message } = req.body;
+    
+    console.log('Received email request:', { userEmail, subject });
 
     // Email options for user confirmation
     const userMailOptions = {
@@ -57,14 +59,17 @@ app.post('/send-email', (req, res) => {
     // Send email to user
     transporter.sendMail(userMailOptions, (error, info) => {
         if (error) {
-            return res.status(500).send('Error sending email to user.');
+            console.error('Error sending email to user:', error);
+            return res.status(500).json({ error: 'Error sending email to user.', details: error.message });
         }
         // Send email to admin
         transporter.sendMail(adminMailOptions, (error, info) => {
             if (error) {
-                return res.status(500).send('Error sending email to admin.');
+                console.error('Error sending email to admin:', error);
+                return res.status(500).json({ error: 'Error sending email to admin.', details: error.message });
             }
-            res.status(200).send('Emails sent successfully.');
+            console.log('Emails sent successfully');
+            res.status(200).json({ success: true, message: 'Emails sent successfully.' });
         });
     });
 });
