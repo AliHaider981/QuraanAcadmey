@@ -51,7 +51,11 @@ try {
         auth: {
             user: process.env.EMAIL_USER || 'noemail@gmail.com',
             pass: process.env.EMAIL_PASSWORD || 'nopass'
-        }
+        },
+        // Add connection timeout
+        connectionTimeout: 10000, // 10 seconds
+        greetingTimeout: 10000,
+        socketTimeout: 10000
     });
     console.log('Nodemailer transporter created successfully');
 } catch (error) {
@@ -59,43 +63,41 @@ try {
 }
 
 // Send email endpoint
-app.post('/send-email', (req, res) => {
+app.post('/send-email', async (req, res) => {
     const { userEmail, subject, message } = req.body;
     
     console.log('Received email request:', { userEmail, subject });
 
-    // Email options for user confirmation
-    const userMailOptions = {
-        from: process.env.EMAIL_USER, // Admin email
-        to: userEmail,
-        subject: subject,
-        text: message,
-    };
+    try {
+        // Email options for user confirmation
+        const userMailOptions = {
+            from: process.env.EMAIL_USER, // Admin email
+            to: userEmail,
+            subject: subject,
+            text: message,
+        };
 
-    // Email options for admin notification
-    const adminMailOptions = {
-        from: process.env.EMAIL_USER, // Admin email
-        to: process.env.ADMIN_EMAIL || process.env.EMAIL_USER,  // Admin email for notifications
-        subject: `New email from: ${userEmail}`,
-        text: `User Email: ${userEmail}\nMessage: ${message}`,
-    };
+        // Email options for admin notification
+        const adminMailOptions = {
+            from: process.env.EMAIL_USER, // Admin email
+            to: process.env.ADMIN_EMAIL || process.env.EMAIL_USER,  // Admin email for notifications
+            subject: `New email from: ${userEmail}`,
+            text: `User Email: ${userEmail}\nMessage: ${message}`,
+        };
 
-    // Send email to user
-    transporter.sendMail(userMailOptions, (error, info) => {
-        if (error) {
-            console.error('Error sending email to user:', error);
-            return res.status(500).json({ error: 'Error sending email to user.', details: error.message });
-        }
+        // Send email to user
+        await transporter.sendMail(userMailOptions);
+        console.log('Email sent to user successfully');
+
         // Send email to admin
-        transporter.sendMail(adminMailOptions, (error, info) => {
-            if (error) {
-                console.error('Error sending email to admin:', error);
-                return res.status(500).json({ error: 'Error sending email to admin.', details: error.message });
-            }
-            console.log('Emails sent successfully');
-            res.status(200).json({ success: true, message: 'Emails sent successfully.' });
-        });
-    });
+        await transporter.sendMail(adminMailOptions);
+        console.log('Email sent to admin successfully');
+
+        res.status(200).json({ success: true, message: 'Emails sent successfully.' });
+    } catch (error) {
+        console.error('Error sending emails:', error);
+        res.status(500).json({ error: 'Error sending emails.', details: error.message });
+    }
 });
 
 // Serve static files (index.html and assets) — registered after API routes
