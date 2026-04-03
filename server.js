@@ -1,19 +1,42 @@
 const express = require('express');
 const nodemailer = require('nodemailer');
-const cors = require('cors');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
-app.use(cors({
-  origin: ['http://localhost:3000', 'https://alihaider981.github.io', 'https://alihaider981.github.io/QuraanAcadmey', 'https://quraanacadmey-production.up.railway.app'],
-  methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
-app.options('*', cors()); // Handle preflight
 app.use(express.json());
+
+// CORS middleware - set headers manually for maximum compatibility
+app.use((req, res, next) => {
+    const allowedOrigins = [
+        'http://localhost:3000',
+        'https://alihaider981.github.io',
+        'https://alihaider981.github.io/QuraanAcadmey',
+        'https://quraanacadmey-production.up.railway.app'
+    ];
+    const origin = req.headers.origin;
+    
+    if (allowedOrigins.includes(origin)) {
+        res.header('Access-Control-Allow-Origin', origin);
+    }
+    
+    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    
+    if (req.method === 'OPTIONS') {
+        return res.sendStatus(200);
+    }
+    
+    next();
+});
+
+// Health check route
+app.get('/', (req, res) => {
+    res.send('Server is running on port ' + PORT);
+});
 
 // Configure nodemailer transporter
 if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
