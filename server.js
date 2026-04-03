@@ -26,6 +26,7 @@ const transporter = nodemailer.createTransport({
 
 // Send email endpoint
 app.post('/send-email', (req, res) => {
+    debugger;
     const { userEmail, subject, message } = req.body;
 
     // Email options for user confirmation
