@@ -45,21 +45,24 @@ try {
         console.error('Missing EMAIL_USER or EMAIL_PASSWORD environment variables');
         console.error('EMAIL_USER:', process.env.EMAIL_USER);
         console.error('EMAIL_PASSWORD:', process.env.EMAIL_PASSWORD ? '***' : 'NOT SET');
+        transporter = null; // Set to null if not configured
+    } else {
+        transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASSWORD
+            },
+            // Add connection timeout
+            connectionTimeout: 10000, // 10 seconds
+            greetingTimeout: 10000,
+            socketTimeout: 10000
+        });
+        console.log('Nodemailer transporter created successfully');
     }
-    transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-            user: process.env.EMAIL_USER || 'noemail@gmail.com',
-            pass: process.env.EMAIL_PASSWORD || 'nopass'
-        },
-        // Add connection timeout
-        connectionTimeout: 10000, // 10 seconds
-        greetingTimeout: 10000,
-        socketTimeout: 10000
-    });
-    console.log('Nodemailer transporter created successfully');
 } catch (error) {
     console.error('Error creating nodemailer transporter:', error);
+    transporter = null;
 }
 
 // Send email endpoint
@@ -67,6 +70,11 @@ app.post('/send-email', async (req, res) => {
     const { userEmail, subject, message } = req.body;
     
     console.log('Received email request:', { userEmail, subject });
+
+    if (!transporter) {
+        console.error('Email transporter not configured');
+        return res.status(500).json({ error: 'Email service not configured.' });
+    }
 
     try {
         // Email options for user confirmation
