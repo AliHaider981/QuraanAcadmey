@@ -1,5 +1,5 @@
 const express = require('express');
-const nodemailer = require('nodemailer');
+const sgMail = require('@sendgrid/mail');
 require('dotenv').config();
 
 const app = express();
@@ -38,31 +38,12 @@ app.get('/', (req, res) => {
     res.send('Server is running on port ' + PORT);
 });
 
-// Configure nodemailer transporter
-let transporter;
-try {
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
-        console.error('Missing EMAIL_USER or EMAIL_PASSWORD environment variables');
-        console.error('EMAIL_USER:', process.env.EMAIL_USER);
-        console.error('EMAIL_PASSWORD:', process.env.EMAIL_PASSWORD ? '***' : 'NOT SET');
-        transporter = null; // Set to null if not configured
-    } else {
-        transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-                user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_PASSWORD
-            },
-            // Add connection timeout
-            connectionTimeout: 10000, // 10 seconds
-            greetingTimeout: 10000,
-            socketTimeout: 10000
-        });
-        console.log('Nodemailer transporter created successfully');
-    }
-} catch (error) {
-    console.error('Error creating nodemailer transporter:', error);
-    transporter = null;
+// Configure SendGrid
+if (process.env.SENDGRID_API_KEY) {
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+    console.log('SendGrid configured successfully');
+} else {
+    console.error('Missing SENDGRID_API_KEY environment variable');
 }
 
 // Send email endpoint
@@ -71,34 +52,34 @@ app.post('/send-email', async (req, res) => {
     
     console.log('Received email request:', { userEmail, subject });
 
-    if (!transporter) {
-        console.error('Email transporter not configured');
+    if (!process.env.SENDGRID_API_KEY) {
+        console.error('SendGrid API key not configured');
         return res.status(500).json({ error: 'Email service not configured.' });
     }
 
     try {
         // Email options for user confirmation
-        const userMailOptions = {
-            from: process.env.EMAIL_USER, // Admin email
+        const userMsg = {
             to: userEmail,
+            from: process.env.ADMIN_EMAIL || 'noreply@quraanacademy.com', // Use verified sender
             subject: subject,
             text: message,
         };
 
         // Email options for admin notification
-        const adminMailOptions = {
-            from: process.env.EMAIL_USER, // Admin email
-            to: process.env.ADMIN_EMAIL || process.env.EMAIL_USER,  // Admin email for notifications
+        const adminMsg = {
+            to: process.env.ADMIN_EMAIL || process.env.EMAIL_USER || 'admin@quraanacademy.com',
+            from: process.env.ADMIN_EMAIL || 'noreply@quraanacademy.com',
             subject: `New email from: ${userEmail}`,
             text: `User Email: ${userEmail}\nMessage: ${message}`,
         };
 
         // Send email to user
-        await transporter.sendMail(userMailOptions);
+        await sgMail.send(userMsg);
         console.log('Email sent to user successfully');
 
         // Send email to admin
-        await transporter.sendMail(adminMailOptions);
+        await sgMail.send(adminMsg);
         console.log('Email sent to admin successfully');
 
         res.status(200).json({ success: true, message: 'Emails sent successfully.' });
