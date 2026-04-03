@@ -15,11 +15,6 @@ app.use(cors({
 app.options('*', cors()); // Handle preflight
 app.use(express.json());
 
-// Health check route
-app.get('/', (req, res) => {
-    res.send('Server is running on port ' + PORT);
-});
-
 // Configure nodemailer transporter
 if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
     console.error('Missing EMAIL_USER or EMAIL_PASSWORD environment variables');
@@ -73,6 +68,10 @@ app.post('/send-email', (req, res) => {
         });
     });
 });
+
+// Serve static files (index.html and assets) — registered after API routes
+// so POST /send-email is never shadowed by the static handler
+app.use(express.static('.'));
 
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server is running on port ${PORT}`);
