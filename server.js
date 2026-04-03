@@ -16,6 +16,10 @@ app.options('*', cors()); // Handle preflight
 app.use(express.json());
 
 // Configure nodemailer transporter
+if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
+    console.error('Missing EMAIL_USER or EMAIL_PASSWORD environment variables');
+    process.exit(1);
+}
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
