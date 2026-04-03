@@ -1734,7 +1734,10 @@
     };
 
     try {
-      const resp = await fetch('/send-email', {
+      const backendBase = window.location.hostname.includes('github.io')
+        ? 'http://localhost:3000' // change to deployed backend URL if available
+        : 'http://localhost:3000';
+      const resp = await fetch(`${backendBase}/send-email`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
