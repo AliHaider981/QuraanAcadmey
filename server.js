@@ -39,18 +39,24 @@ app.get('/', (req, res) => {
 });
 
 // Configure nodemailer transporter
-if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
-    console.error('Missing EMAIL_USER or EMAIL_PASSWORD environment variables');
-    console.error('EMAIL_USER:', process.env.EMAIL_USER);
-    console.error('EMAIL_PASSWORD:', process.env.EMAIL_PASSWORD ? '***' : 'NOT SET');
-}
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.EMAIL_USER || 'noemail@gmail.com',
-        pass: process.env.EMAIL_PASSWORD || 'nopass'
+let transporter;
+try {
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
+        console.error('Missing EMAIL_USER or EMAIL_PASSWORD environment variables');
+        console.error('EMAIL_USER:', process.env.EMAIL_USER);
+        console.error('EMAIL_PASSWORD:', process.env.EMAIL_PASSWORD ? '***' : 'NOT SET');
     }
-});
+    transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: process.env.EMAIL_USER || 'noemail@gmail.com',
+            pass: process.env.EMAIL_PASSWORD || 'nopass'
+        }
+    });
+    console.log('Nodemailer transporter created successfully');
+} catch (error) {
+    console.error('Error creating nodemailer transporter:', error);
+}
 
 // Send email endpoint
 app.post('/send-email', (req, res) => {
